@@ -13,19 +13,43 @@ import argparse
 parser=argparse.ArgumentParser()
 parser.parse_args()
 
-def staple_processing(ordner):
-    files = os.listdir(ordner)
+def staple_processing(path, gray=True, contrast="thresh"):
+    files = sorted(os.listdir(path))
+    x = 0
     for f in files:
-        if os.path.isfile(f):
+        if os.path.isfile(path + "/" + f):
             try:
-                img = cut_image(cv.imread(f))
-                gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
-                cv2.imwrite("_"+f, gray)
-            except:
-                print("Fehler: " + f)
+                if True:
+                    ir = cv.imread(path + "/" + f)
+                    s = size(ir)
+                    img1 = cut_image(ir, contrast="thresh", max_cnt="area")
+                    #img2 = cut_image(ir, contrast="thresh", max_cnt="length")
+                    img3 = cut_image(ir, contrast="canny", max_cnt="area")
+                    img4 = cut_image(ir, contrast="canny", max_cnt="length")
 
+                    if size(img1) == s:
+                        img1 = []
 
-def cut_image(img):
+                    if size(img3) == s:
+                        img3 = []
+
+                    if size(img4) == s:
+                        img4 = []
+
+                    img = max([img1, img3, img4], key=size)
+    
+                if gray == True:
+                    img = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
+                cv.imwrite(path + r"/Seite_" + str(x) + ".jpg", img)
+                x+=1
+            except Exception as e:
+                print("Fehler bei " + f + ": " + str(e))
+    print("Es wurden " + str(x) + " Seiten verarbeitet")
+
+def size(x):
+    return x.shape[0] * x.shape[1]
+
+def cut_image(img, contrast="thresh", max_cnt="area"):
     orig = img.copy()
 
     width = 500
@@ -34,10 +58,31 @@ def cut_image(img):
     img = cv.resize(img, (width, height), interpolation = cv.INTER_AREA)
 
     imgray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
-    ret,thresh = cv.threshold(imgray,127,255,0)
-    contours,hierachy = cv.findContours(thresh,cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
+    if contrast == "thresh":
+        _,thresh = cv.threshold(imgray,127,255,0)
+    if contrast == "canny":
+        imgray = cv.GaussianBlur(imgray, (5, 5), 0)
+        thresh = cv.Canny(imgray, 75, 200)
+    
+    contours,_ = cv.findContours(thresh,cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
 
-    cnt = max(contours, key=cv.contourArea)
+    #orig_r = cv.resize(orig, (width, height), interpolation = cv.INTER_AREA)
+
+    cnt = []
+    if max_cnt == "length":
+        x=-1
+        max_cl = 0
+        for c in contours:
+            x += 1
+            if max_cl < cv.arcLength(c, False):
+                max_cl = cv.arcLength(c, False)
+        cnt = contours[x]
+    if max_cnt == "area":
+        try:
+            cnt = max(contours, key=cv.contourArea)
+        except:
+            return
+    
 
     rect = cv.minAreaRect(cnt)
     box = cv.boxPoints(rect)
@@ -99,3 +144,18 @@ def four_point_transform(image, pts):
     warped = cv.warpPerspective(image, M, (maxWidth, maxHeight))
     # return the warped image
     return warped
+
+
+#staple_processing(r"/home/toni/Scans/Verkehrsgeographie", gray=True, contrast="canny")
+
+def test():
+    r = cut_image(cv.imread(r"/home/toni/Scans/Verkehrsgeographie/20211128_114300.jpg"), "canny", "area")
+    #cv.imwrite(r"/home/toni/Scans/Verkehrsgeographie/test.jpg", r)
+    print(size(r))
+    width = 500
+    scale = width / r.shape[1]
+    height = int(r.shape[0] * scale)
+    r = cv.resize(r, (width, height), interpolation = cv.INTER_AREA)
+    cv.imshow("Test", r)
+    cv.waitKey(0)
+    cv.destroyAllWindows()
