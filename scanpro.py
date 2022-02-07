@@ -184,8 +184,12 @@ def img_comparator(img_1, img_2, img_diff):
     (T, thresh) = cv.threshold(dilated, 3, 255, cv.THRESH_BINARY)
 
     cnts = cv.findContours(thresh, cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE)
-
-    cnts = imutils.grab_contours(cnts)
+    
+    # Siehe https://github.com/PyImageSearch/imutils/blob/master/imutils/convenience.py def grab_contours(cnts):
+    if len(cnts) == 2:
+        cnts = cnts[0]
+    elif len(cnts) == 3:
+        cnts = cnts[1]
 
     for c in cnts:
         (x,y,w,h) = cv.boundingRect(c)
