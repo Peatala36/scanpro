@@ -20,12 +20,12 @@ def staple_processing(path, gray=True, contrast="thresh"):
         if os.path.isfile(path + "/" + f):
             try:
                 if True:
-                    ir = cv.imread(path + "/" + f)
+                    ir = img_read(path + "/" + f)
                     s = size(ir)
-                    img1 = cut_image(ir, contrast="thresh", max_cnt="area")
-                    #img2 = cut_image(ir, contrast="thresh", max_cnt="length")
-                    img3 = cut_image(ir, contrast="canny", max_cnt="area")
-                    img4 = cut_image(ir, contrast="canny", max_cnt="length")
+                    img1 = img_cut(ir, contrast="thresh", max_cnt="area")
+                    #img2 = img_cut(ir, contrast="thresh", max_cnt="length")
+                    img3 = img_cut(ir, contrast="canny", max_cnt="area")
+                    img4 = img_cut(ir, contrast="canny", max_cnt="length")
 
                     if size(img1) == s:
                         img1 = []
@@ -49,7 +49,7 @@ def staple_processing(path, gray=True, contrast="thresh"):
 def size(x):
     return x.shape[0] * x.shape[1]
 
-def cut_image(img, contrast="thresh", max_cnt="area"):
+def img_cut(img, contrast="thresh", max_cnt="area"):
     orig = img.copy()
 
     width = 500
@@ -149,7 +149,7 @@ def four_point_transform(image, pts):
 #staple_processing(r"/home/toni/Scans/Verkehrsgeographie", gray=True, contrast="canny")
 
 def test():
-    r = cut_image(cv.imread(r"/home/toni/Scans/Verkehrsgeographie/20211128_114300.jpg"), "canny", "area")
+    r = img_cut(cv.imread(r"/home/toni/Scans/Verkehrsgeographie/20211128_114300.jpg"), "canny", "area")
     #cv.imwrite(r"/home/toni/Scans/Verkehrsgeographie/test.jpg", r)
     print(size(r))
     width = 500
@@ -159,3 +159,40 @@ def test():
     cv.imshow("Test", r)
     cv.waitKey(0)
     cv.destroyAllWindows()
+
+
+def img_read(path):
+    if os.path.isfile(path):
+        try:
+            _,img = cv.imreadmulti(path, flags=cv.IMREAD_COLOR)
+            return img
+        except:
+            print(str(path) + " kann nicht eingelesen werden.")
+    else:
+        print(str(path) + " konnte nicht gefunden werden.")
+        return []
+
+def img_comparator(img_1, img_2, img_diff):
+    diff = img_1.copy()
+    cv.absdiff(img_1, img_2, diff)
+
+    gray = cv.cvtColor(diff, cv.COLOR_BGR2GRAY)
+
+    for a in range(0, 3):
+        dilated = cv.dilate(gray.copy(), None, iterations=a+1)
+
+    (T, thresh) = cv.threshold(dilated, 3, 255, cv.THRESH_BINARY)
+
+    cnts = cv.findContours(thresh, cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE)
+
+    cnts = imutils.grab_contours(cnts)
+
+    for c in cnts:
+        (x,y,w,h) = cv.boundingRect(c)
+        cv.rectangle(img_2, (x,y), (x+w, y+h), (0, 255,0),2)
+
+    try:
+        cv.imwrite(img_diff, img_2)
+        print(img_diff + "gespeichert")
+    except:
+        print("Datei konnte nicht gespeichert werden.")
