@@ -9,35 +9,18 @@ import os
 
 #args = vars(ap.parse_args())
 
-import argparse
 parser=argparse.ArgumentParser()
 parser.parse_args()
 
-def staple_processing(path, gray=True, contrast="thresh"):
+def staple_processing(path, gray=True, contrast="thresh", max_cnt="area"):
     files = sorted(os.listdir(path))
     x = 0
     for f in files:
         if os.path.isfile(path + "/" + f):
             try:
-                if True:
-                    ir = img_read(path + "/" + f)
-                    s = size(ir)
-                    img1 = img_cut(ir, contrast="thresh", max_cnt="area")
-                    #img2 = img_cut(ir, contrast="thresh", max_cnt="length")
-                    img3 = img_cut(ir, contrast="canny", max_cnt="area")
-                    img4 = img_cut(ir, contrast="canny", max_cnt="length")
-
-                    if size(img1) == s:
-                        img1 = []
-
-                    if size(img3) == s:
-                        img3 = []
-
-                    if size(img4) == s:
-                        img4 = []
-
-                    img = max([img1, img3, img4], key=size)
-    
+                ir = img_read(path + "/" + f)
+                s = size(ir)
+                img = img_cut(ir, contrast, max_cnt)
                 if gray == True:
                     img = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
                 cv.imwrite(path + r"/Seite_" + str(x) + ".jpg", img)
@@ -45,6 +28,144 @@ def staple_processing(path, gray=True, contrast="thresh"):
             except Exception as e:
                 print("Fehler bei " + f + ": " + str(e))
     print("Es wurden " + str(x) + " Seiten verarbeitet")
+
+def manual_processing(path, gray=True, rotate=0):
+    # rotate=0: alles belassen, =1: alle auf Hochkant drehen, =2: alle auf Querformat drehen
+    # manual_processing(r"/home/toni/Scans/Verkehrsgeographie")
+    files = sorted(os.listdir(path))
+    x = 0
+    for f in files:
+        if os.path.isfile(path + "/" + f):
+            try:
+                img = cv.imread(path + "/" + f)
+                print(f + " eingelesen")
+
+                # Bild drehen:
+                img = drehen(img)
+                print(f + " gedreht")
+
+                # Bild zuschneiden
+                img = zuschnitt(img)
+                print(f + " zugeschnitten")
+
+                # Bild ausgrauen
+                if gray == True:
+                    img = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
+                    print(f + " gegraut")
+
+                # Bild halbieren
+                img1, img2 = teilen(img)
+
+                cv.imwrite(path + r"/Seite_" + str(x) + ".jpg", img1)
+                if img2 != []:
+                    x+=1
+                    cv.imwrite(path + r"/Seite_" + str(x) + ".jpg", img2)
+                print(f + " wurde gespeichert")
+                x+=1
+            except Exception as e:
+                print("Fehler bei " + f + ": " + str(e))
+    print("Es wurden " + str(x) + " Seiten verarbeitet")
+ 
+
+def zuschnitt(ir):
+    try:
+        width = 500
+        scale = width / ir.shape[1]
+        height = int(ir.shape[0] * scale)
+                
+        imS = cv.resize(ir, (width, height))
+        cv.imshow("Original", imS)
+                
+        for mode in range(1, 4):
+            if mode == 1:
+                img1 = img_cut(ir, contrast="thresh", max_cnt="area")
+            elif mode == 2:
+                img1 = img_cut(ir, contrast="canny", max_cnt="area")
+            elif mode == 3:
+                img1 = img_cut(ir, contrast="canny", max_cnt="length")
+
+            new_width = int(img1.shape[1] * scale)
+            new_height = int(img1.shape[0] * scale)
+            img1S = cv.resize(img1, (new_width, new_height))
+                    
+            cv.imshow("Bearbeitet", img1S)
+            while(True):
+                k = cv.waitKey(33)
+                if k==27: # Esc key to stop
+                    exit()
+                elif k==13: # Enter key
+                    cv.destroyAllWindows()
+                    return(img1)
+                elif k==83: # Pfeiltaste rechts
+                    print("Nächster Modus")
+                    break
+                elif k==-1:
+                    continue
+                else:
+                    print(k)
+    except Exception as e:
+        print("Fehler beim Zuschnitt: " + str(e))
+
+def drehen(img):
+    try:
+        while(True):
+            width = 500
+            scale = width / img.shape[1]
+            height = int(img.shape[0] * scale)
+                
+            imS = cv.resize(img, (width, height))
+            cv.imshow("Drehen?", imS)
+            
+            k = cv.waitKey(33)
+            if k==27: # Esc key to stop
+                exit()
+            elif k==13: # Enter key
+                cv.destroyAllWindows()
+                return(img)
+            elif k==81: # Pfeiltaste links
+                cv.destroyAllWindows()
+                img = cv.rotate(img, cv.ROTATE_90_COUNTERCLOCKWISE)
+            elif k==83: # Pfeiltaste rechts
+                cv.destroyAllWindows()
+                img = cv.rotate(img, cv.ROTATE_90_CLOCKWISE)
+            elif k==-1:
+                continue
+            else:
+                print(k)
+    except Exception as e:
+        print("Fehler beim Drehen: " + str(e))
+
+def teilen(img):
+    try:
+        w = img.shape[1]
+        h = img.shape[0]
+
+        img1 = img[0:h, 0:w//2]
+        img2 = img[0:h, w//2:w]
+
+        width = 500
+        scale1 = width / img1.shape[1]
+        height1 = int(img1.shape[0] * scale1)
+                
+        im1S = cv.resize(img1, (width, height1))
+        cv.imshow("Links", im1S)
+
+        scale2 = width / img2.shape[1]
+        height2 = int(img1.shape[0] * scale2)
+                
+        im2S = cv.resize(img2, (width, height2))
+        cv.imshow("Rechts", im2S)
+
+        while(True):
+            k = cv.waitKey(33)
+            if k==27: # Esc key to stop
+                exit()
+            elif k==13: # Enter key
+                cv.destroyAllWindows()
+                return(img1, img2)
+    except Exception as e:
+        print("Fehler beim Teilen: " + str(e))
+        
 
 def size(x):
     return x.shape[0] * x.shape[1]
