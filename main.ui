@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>800</width>
+    <height>600</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QHBoxLayout" name="horizontalLayout">
+    <item>
+     <widget class="QListWidget" name="listWidget">
+      <property name="maximumSize">
+       <size>
+        <width>300</width>
+        <height>16777215</height>
+       </size>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QGraphicsView" name="graphicsView">
+      <property name="minimumSize">
+       <size>
+        <width>600</width>
+        <height>0</height>
+       </size>
+      </property>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+  <widget class="QToolBar" name="toolBar">
+   <property name="windowTitle">
+    <string>toolBar</string>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+   <addaction name="action_oeffnen"/>
+   <addaction name="actionSpeichern"/>
+   <addaction name="separator"/>
+   <addaction name="actionrefresh"/>
+   <addaction name="actionLinks_rotieren"/>
+   <addaction name="actionRechts_rotieren"/>
+   <addaction name="separator"/>
+   <addaction name="actionZuschnitt_1"/>
+   <addaction name="actionZuschnitt_2"/>
+   <addaction name="actionZuschnitt_3"/>
+  </widget>
+  <action name="action_oeffnen">
+   <property name="icon">
+    <iconset theme="document-open">
+     <normaloff>.</normaloff>.</iconset>
+   </property>
+   <property name="text">
+    <string>Öffnen</string>
+   </property>
+  </action>
+  <action name="actionSpeichern">
+   <property name="icon">
+    <iconset theme="document-save">
+     <normaloff>.</normaloff>.</iconset>
+   </property>
+   <property name="text">
+    <string>Speichern</string>
+   </property>
+  </action>
+  <action name="actionLinks_rotieren">
+   <property name="icon">
+    <iconset theme="object-rotate-left">
+     <normaloff>.</normaloff>.</iconset>
+   </property>
+   <property name="text">
+    <string>Links rotieren</string>
+   </property>
+  </action>
+  <action name="actionRechts_rotieren">
+   <property name="icon">
+    <iconset theme="object-rotate-right">
+     <normaloff>.</normaloff>.</iconset>
+   </property>
+   <property name="text">
+    <string>Rechts rotieren</string>
+   </property>
+  </action>
+  <action name="actionrefresh">
+   <property name="icon">
+    <iconset theme="view-fullscreen"/>
+   </property>
+   <property name="text">
+    <string>refresh</string>
+   </property>
+  </action>
+  <action name="actionZuschnitt_1">
+   <property name="text">
+    <string>Zuschnitt 1</string>
+   </property>
+  </action>
+  <action name="actionZuschnitt_2">
+   <property name="text">
+    <string>Zuschnitt 2</string>
+   </property>
+  </action>
+  <action name="actionZuschnitt_3">
+   <property name="text">
+    <string>Zuschnitt 3</string>
+   </property>
+  </action>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
