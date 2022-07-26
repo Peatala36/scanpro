@@ -165,22 +165,23 @@ class img(QListWidgetItem):
         self.orgPath = orgPath
         self.name = name
         self.setText(name)
+        self.image_qt = ""
         try:
             self.orgImg = cv.imread(orgPath)
         except:
             print(str(orgPath) + " konnte nicht eingelesen werden.")
-        self.img = self.orgImg.copy()
-        self.image_qt = ""
-        self._convert_cv_qt()
-        
+        self.setImg(self.orgImg.copy())
 
-    def _convert_cv_qt(self):
+
+    def setImg(self, img):
+        
+        self.img = img
+        
         """Convert from an opencv image to QPixmap"""
-        rgb_image = cv.cvtColor(self.img, cv.COLOR_BGR2RGB)
+        rgb_image = cv.cvtColor(img, cv.COLOR_BGR2RGB)
         h, w, ch = rgb_image.shape
         bytes_per_line = ch * w
-        convert_to_Qt_format = QImage(rgb_image.data, w, h, bytes_per_line, QImage.Format_RGB888)
-        self.image_qt = convert_to_Qt_format
+        self.image_qt = QImage(rgb_image.data, w, h, bytes_per_line, QImage.Format_RGB888)
 
     def auto_cut(self, contrast="thresh", max_cnt="area"):
         orig = self.img.copy()
@@ -192,7 +193,7 @@ class img(QListWidgetItem):
 
         imgray = cv.cvtColor(re_img, cv.COLOR_BGR2GRAY)
         if contrast == "thresh":
-            _,thresh = cv.threshold(imgray,127,255,0)
+            _,thresh = cv.threshold(imgray,127,255,0 | cv.THRESH_OTSU)
         if contrast == "canny":
             imgray = cv.GaussianBlur(imgray, (5, 5), 0)
             thresh = cv.Canny(imgray, 75, 200)
@@ -220,8 +221,7 @@ class img(QListWidgetItem):
         box = cv.boxPoints(rect)
         box = np.int0(box)
 
-        self.img = self._four_point_transform(orig, box / scale)
-        self._convert_cv_qt()
+        self.setImg(self._four_point_transform(orig, box / scale))
 
 
     def _order_points(self, pts):
@@ -279,17 +279,29 @@ class img(QListWidgetItem):
 
     def rotate_90_counterclockwise(self):
         try:
-            self.img = cv.rotate(self.img, cv.ROTATE_90_COUNTERCLOCKWISE)
-            self._convert_cv_qt()
+            self.setImg(cv.rotate(self.img, cv.ROTATE_90_COUNTERCLOCKWISE))
         except Exception as e:
             print("Fehler beim Drehen: " + str(e))
 
     def rotate_90_clockwise(self):
         try:
-            self.img = cv.rotate(self.img, cv.ROTATE_90_CLOCKWISE)
-            self._convert_cv_qt()
+            self.setImg(cv.rotate(self.img, cv.ROTATE_90_CLOCKWISE))
         except Exception as e:
             print("Fehler beim Drehen: " + str(e))
+
+    def setGray(self):
+        try:
+            self.setImg(cv.cvtColor(self.img, cv.COLOR_BGR2GRAY))
+        except Exception as e:
+            print("Fehler bei Grau: " + str(e))
+
+    def setBlackWhite(self):
+        try:
+            grayImage = cv.cvtColor(self.img, cv.COLOR_BGR2GRAY)
+            _, BlackAndWhiteImage = cv.threshold(grayImage, 128, 255, cv.THRESH_BINARY | cv.THRESH_OTSU)
+            self.setImg(BlackAndWhiteImage)
+        except Exception as e:
+            print("Fehler bei Schwarz/Weiß: " + str(e))
 
     def halve(self):
         try:
@@ -299,6 +311,6 @@ class img(QListWidgetItem):
             img1 = self.img[0:h, 0:w//2]
             img2 = self.img[0:h, w//2:w]
 
-            self._convert_cv_qt()
+            
         except Exception as e:
             print("Fehler beim Teilen: " + str(e))
