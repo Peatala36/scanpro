@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>ScanPro</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QHBoxLayout" name="horizontalLayout">
@@ -51,6 +51,7 @@
    <addaction name="action_oeffnen"/>
    <addaction name="actionSpeichern"/>
    <addaction name="separator"/>
+   <addaction name="actionUndo"/>
    <addaction name="actionrefresh"/>
    <addaction name="actionLinks_rotieren"/>
    <addaction name="actionRechts_rotieren"/>
@@ -58,6 +59,8 @@
    <addaction name="actionZuschnitt_1"/>
    <addaction name="actionZuschnitt_2"/>
    <addaction name="actionZuschnitt_3"/>
+   <addaction name="actionBlackWhite"/>
+   <addaction name="actionGrau"/>
   </widget>
   <action name="action_oeffnen">
    <property name="icon">
@@ -97,7 +100,8 @@
   </action>
   <action name="actionrefresh">
    <property name="icon">
-    <iconset theme="view-fullscreen"/>
+    <iconset theme="view-fullscreen">
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>refresh</string>
@@ -107,15 +111,45 @@
    <property name="text">
     <string>Zuschnitt 1</string>
    </property>
+   <property name="shortcut">
+    <string>1</string>
+   </property>
   </action>
   <action name="actionZuschnitt_2">
    <property name="text">
     <string>Zuschnitt 2</string>
    </property>
+   <property name="shortcut">
+    <string>2</string>
+   </property>
   </action>
   <action name="actionZuschnitt_3">
    <property name="text">
     <string>Zuschnitt 3</string>
+   </property>
+   <property name="shortcut">
+    <string>3</string>
+   </property>
+  </action>
+  <action name="actionUndo">
+   <property name="icon">
+    <iconset theme="edit-undo"/>
+   </property>
+   <property name="text">
+    <string>Rückgängig</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Z</string>
+   </property>
+  </action>
+  <action name="actionBlackWhite">
+   <property name="text">
+    <string>Schwarz/Weiß</string>
+   </property>
+  </action>
+  <action name="actionGrau">
+   <property name="text">
+    <string>Grau</string>
    </property>
   </action>
  </widget>
