@@ -1,8 +1,9 @@
 import sys
+import numpy as np
 from PyQt5 import QtWidgets, uic
-from PyQt5.QtWidgets import QGraphicsScene, QFileDialog, QGraphicsPixmapItem
+from PyQt5.QtWidgets import QGraphicsScene, QFileDialog, QGraphicsPixmapItem, QGraphicsView, QRubberBand
 from PyQt5.QtGui import QPixmap, QImage
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QRect, QPoint
 import os.path
 import scanpro
 import cv2 as cv
@@ -24,13 +25,21 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.actionZuschnitt_1.triggered.connect(self.zuschnitt_1)
         self.ui.actionZuschnitt_2.triggered.connect(self.zuschnitt_2)
         self.ui.actionZuschnitt_3.triggered.connect(self.zuschnitt_3)
-        self.ui.actionGrau.triggered.connect(self.grau)
         self.ui.actionBlackWhite.triggered.connect(self.schwarzWeiss)
+        self.ui.actionGrau.triggered.connect(self.grau)
+        self.ui.actionRetouch.triggered.connect(self.retouch)
+        
+
+        #self.ui.graphicsView.setDragMode(QGraphicsView.RubberBandDrag)
+        self.ui.graphicsView.rubberBandChanged.connect(self.rubberBand)
         
         self.ui.listWidget.itemClicked.connect(self.itemClicked_event)
 
         self.scene = QGraphicsScene()
         self.ui.graphicsView.setScene(self.scene)
+
+        self.retouchMode = False
+        self.rubberBandArea = QRect()
         
         self.lastImg = ""
         self.lastImgBackup = ""
@@ -108,6 +117,35 @@ class MainWindow(QtWidgets.QMainWindow):
     def undo(self):
         self.lastImg.setImg(self.lastImgBackup.copy())
         self.refresh()
+
+    def retouch(self):
+        if self.retouchMode == False:
+            self.retouchMode = True
+            self.ui.graphicsView.setDragMode(QGraphicsView.RubberBandDrag)
+        else:
+            self.retouchMode = False
+            self.ui.graphicsView.setDragMode(QGraphicsView.NoDrag)
+            
+    def rubberBand(self, viewportRect, fromScenePoint, toScenePoint):
+        if viewportRect == QRect():
+            mask = np.zeros((self.ui.listWidget.selectedItems()[0].img.shape[0],self.ui.listWidget.selectedItems()[0].img.shape[1],3), np.uint8)
+
+            scal_x = self.ui.graphicsView.width() / self.ui.listWidget.selectedItems()[0].img.shape[1]
+            scal_y = self.ui.graphicsView.height() / self.ui.listWidget.selectedItems()[0].img.shape[0]
+            scal = min(scal_x, scal_y)
+
+            start = self.ui.graphicsView.mapToScene(self.rubberBandArea.topLeft())/scal
+            ende = self.ui.graphicsView.mapToScene(self.rubberBandArea.bottomRight())/scal
+
+            white = (255, 255, 255)
+            mask = cv.rectangle(mask, (int(start.x()), int(start.y())), (int(ende.x()), int(ende.y())), white, -1)
+            mask = cv.cvtColor(mask, cv.COLOR_BGR2GRAY)
+
+            output = cv.inpaint(self.ui.listWidget.selectedItems()[0].img, mask, 3, flags=cv.INPAINT_TELEA)
+            cv.imwrite("/home/toni/git/output2.jpg", output)
+        else:
+            self.rubberBandArea = viewportRect
+
 
 def main():
     app = QtWidgets.QApplication(sys.argv)

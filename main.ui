@@ -53,6 +53,7 @@
    <addaction name="separator"/>
    <addaction name="actionUndo"/>
    <addaction name="actionrefresh"/>
+   <addaction name="separator"/>
    <addaction name="actionLinks_rotieren"/>
    <addaction name="actionRechts_rotieren"/>
    <addaction name="separator"/>
@@ -61,6 +62,7 @@
    <addaction name="actionZuschnitt_3"/>
    <addaction name="actionBlackWhite"/>
    <addaction name="actionGrau"/>
+   <addaction name="actionRetouch"/>
   </widget>
   <action name="action_oeffnen">
    <property name="icon">
@@ -69,6 +71,9 @@
    </property>
    <property name="text">
     <string>Öffnen</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+O</string>
    </property>
   </action>
   <action name="actionSpeichern">
@@ -79,6 +84,9 @@
    <property name="text">
     <string>Speichern</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+S</string>
+   </property>
   </action>
   <action name="actionLinks_rotieren">
    <property name="icon">
@@ -88,6 +96,9 @@
    <property name="text">
     <string>Links rotieren</string>
    </property>
+   <property name="shortcut">
+    <string>L</string>
+   </property>
   </action>
   <action name="actionRechts_rotieren">
    <property name="icon">
@@ -96,6 +107,9 @@
    </property>
    <property name="text">
     <string>Rechts rotieren</string>
+   </property>
+   <property name="shortcut">
+    <string>R</string>
    </property>
   </action>
   <action name="actionrefresh">
@@ -133,7 +147,8 @@
   </action>
   <action name="actionUndo">
    <property name="icon">
-    <iconset theme="edit-undo"/>
+    <iconset theme="edit-undo">
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Rückgängig</string>
@@ -150,6 +165,11 @@
   <action name="actionGrau">
    <property name="text">
     <string>Grau</string>
+   </property>
+  </action>
+  <action name="actionRetouch">
+   <property name="text">
+    <string>Retouch</string>
    </property>
   </action>
  </widget>
