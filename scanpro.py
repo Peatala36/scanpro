@@ -165,13 +165,13 @@ class img(QListWidgetItem):
         self.orgPath = orgPath
         self.name = name
         self.setText(name)
+        self.img = ""
         self.image_qt = ""
         try:
             self.orgImg = cv.imread(orgPath)
         except:
             print(str(orgPath) + " konnte nicht eingelesen werden.")
         self.setImg(self.orgImg.copy())
-
 
     def setImg(self, img):
         
@@ -191,10 +191,14 @@ class img(QListWidgetItem):
         height = int(self.img.shape[0] * scale)
         re_img = cv.resize(self.img, (width, height), interpolation = cv.INTER_AREA)
 
-        imgray = cv.cvtColor(re_img, cv.COLOR_BGR2GRAY)
+        if len(re_img.shape) > 2:
+            imgray = cv.cvtColor(re_img, cv.COLOR_BGR2GRAY)
+        else:
+            imgray = re_img
+            
         if contrast == "thresh":
             _,thresh = cv.threshold(imgray,127,255,0 | cv.THRESH_OTSU)
-        if contrast == "canny":
+        elif contrast == "canny":
             imgray = cv.GaussianBlur(imgray, (5, 5), 0)
             thresh = cv.Canny(imgray, 75, 200)
         
@@ -291,26 +295,51 @@ class img(QListWidgetItem):
 
     def setGray(self):
         try:
-            self.setImg(cv.cvtColor(self.img, cv.COLOR_BGR2GRAY))
+            if len(self.img.shape) > 2:
+                self.setImg(cv.cvtColor(self.img, cv.COLOR_BGR2GRAY))
         except Exception as e:
             print("Fehler bei Grau: " + str(e))
 
     def setBlackWhite(self):
         try:
-            grayImage = cv.cvtColor(self.img, cv.COLOR_BGR2GRAY)
+            if len(self.img.shape) > 2:
+                grayImage = cv.cvtColor(self.img, cv.COLOR_BGR2GRAY)
+            else:
+                grayImage = self.img
             _, BlackAndWhiteImage = cv.threshold(grayImage, 128, 255, cv.THRESH_BINARY | cv.THRESH_OTSU)
             self.setImg(BlackAndWhiteImage)
         except Exception as e:
             print("Fehler bei Schwarz/Weiß: " + str(e))
 
-    def halve(self):
+    def manuel_cut(self, rect):
         try:
-            w = self.img.shape[1]
-            h = self.img.shape[0]
-
-            img1 = self.img[0:h, 0:w//2]
-            img2 = self.img[0:h, w//2:w]
-
-            
+            c = rect.getCoords()
+            self.setImg(self.img[c[0]:c[2], c[1]:c[3]])
+            pass
         except Exception as e:
-            print("Fehler beim Teilen: " + str(e))
+            print("Fehler beim Zuschnitt: " + str(e))
+
+    def retouch(self, rect, gv):
+        try:
+            scal_x = gv.width() / self.img.shape[1]
+            scal_y = gv.height() / self.img.shape[0]
+            scal = min(scal_x, scal_y)
+
+            start = gv.mapToScene(rect.topLeft()) / scal
+            ende = gv.mapToScene(rect.bottomRight()) / scal
+
+            white = (255, 255, 255)
+            mask = np.zeros((self.img.shape[0], self.img.shape[1], 3), np.uint8)
+            mask = cv.rectangle(mask, (int(start.x()), int(start.y())), (int(ende.x()), int(ende.y())), white, -1)
+            mask = cv.cvtColor(mask, cv.COLOR_BGR2GRAY)
+            self.setImg(cv.inpaint(self.img, mask, 10, flags=cv.INPAINT_TELEA))
+        except Exception as e:
+            print("Fehler beim Retuschieren: " + str(e))
+        
+    def floodfill(self, seed=(0,0)):
+        try:
+            flood = self.img.copy()
+            cv.floodFill(flood, None, seedPoint=seed, newVal=(255, 255, 255))
+            self.setImg(flood)
+        except Exception as e:
+            print("Fehler beim Füllen: " + str(e))
