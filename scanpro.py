@@ -163,8 +163,7 @@ class img(QListWidgetItem):
     def __init__(self, orgPath, name):
         super(img, self).__init__()
         self.orgPath = orgPath
-        self.name = name
-        self.setText(name)
+        self.setName(name)
         self.img = ""
         self.image_qt = ""
         try:
@@ -174,7 +173,6 @@ class img(QListWidgetItem):
         self.setImg(self.orgImg.copy())
 
     def setImg(self, img):
-        
         self.img = img
         
         """Convert from an opencv image to QPixmap"""
@@ -182,6 +180,10 @@ class img(QListWidgetItem):
         h, w, ch = rgb_image.shape
         bytes_per_line = ch * w
         self.image_qt = QImage(rgb_image.data, w, h, bytes_per_line, QImage.Format_RGB888)
+
+    def setName(self, name):
+        self.name = name
+        self.setText(name)
 
     def auto_cut(self, contrast="thresh", max_cnt="area"):
         orig = self.img.copy()
@@ -311,10 +313,13 @@ class img(QListWidgetItem):
         except Exception as e:
             print("Fehler bei Schwarz/Weiß: " + str(e))
 
-    def manuel_cut(self, rect):
+    def manuel_cut(self, r):
         try:
-            c = rect.getCoords()
-            self.setImg(self.img[c[0]:c[2], c[1]:c[3]])
+            x1 = r.x()
+            x2 = r.x() + r.width()
+            y1 = r.y()
+            y2 = r.y() + r.height()
+            self.setImg(self.img[y1:y2, x1:x2])
             pass
         except Exception as e:
             print("Fehler beim Zuschnitt: " + str(e))

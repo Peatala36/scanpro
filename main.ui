@@ -61,14 +61,7 @@
    <addaction name="separator"/>
    <addaction name="actionLinks_rotieren"/>
    <addaction name="actionRechts_rotieren"/>
-   <addaction name="separator"/>
-   <addaction name="actionZuschnitt_1"/>
-   <addaction name="actionZuschnitt_2"/>
-   <addaction name="actionZuschnitt_3"/>
-   <addaction name="actionBlackWhite"/>
-   <addaction name="actionGrau"/>
-   <addaction name="actionRetouch"/>
-   <addaction name="actionFuellen"/>
+   <addaction name="actionAuto"/>
   </widget>
   <widget class="QMenuBar" name="menuBar">
    <property name="geometry">
@@ -85,6 +78,7 @@
     </property>
     <addaction name="action_oeffnen"/>
     <addaction name="actionSpeichern"/>
+    <addaction name="actionPDF_Export"/>
    </widget>
    <widget class="QMenu" name="menuBearbeiten">
     <property name="title">
@@ -97,6 +91,8 @@
      <addaction name="actionZuschnitt_1"/>
      <addaction name="actionZuschnitt_2"/>
      <addaction name="actionZuschnitt_3"/>
+     <addaction name="separator"/>
+     <addaction name="actionManueller_Zuschnitt"/>
     </widget>
     <widget class="QMenu" name="menuFarben">
      <property name="title">
@@ -108,8 +104,11 @@
     <addaction name="actionUndo"/>
     <addaction name="actionDeletItem"/>
     <addaction name="actionrefresh"/>
+    <addaction name="separator"/>
     <addaction name="actionLinks_rotieren"/>
     <addaction name="actionRechts_rotieren"/>
+    <addaction name="actionAuto"/>
+    <addaction name="separator"/>
     <addaction name="menuZuschnitt"/>
     <addaction name="menuFarben"/>
     <addaction name="actionRetouch"/>
@@ -229,11 +228,11 @@
    </property>
   </action>
   <action name="actionRetouch">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
    <property name="text">
-    <string>Retouch</string>
+    <string>Retuschieren</string>
+   </property>
+   <property name="shortcut">
+    <string>R</string>
    </property>
   </action>
   <action name="actionRunter">
@@ -269,13 +268,45 @@
    <property name="text">
     <string>Seite teilen</string>
    </property>
+   <property name="shortcut">
+    <string>T</string>
+   </property>
   </action>
   <action name="actionDeletItem">
    <property name="icon">
-    <iconset theme="edit-delete"/>
+    <iconset theme="edit-delete">
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Lösche Element</string>
+   </property>
+   <property name="shortcut">
+    <string>Del</string>
+   </property>
+  </action>
+  <action name="actionAuto">
+   <property name="icon">
+    <iconset theme="application-x-executable">
+     <normaloff>.</normaloff>.</iconset>
+   </property>
+   <property name="text">
+    <string>Automatische Bearbeitung</string>
+   </property>
+  </action>
+  <action name="actionPDF_Export">
+   <property name="text">
+    <string>PDF Export</string>
+   </property>
+   <property name="shortcut">
+    <string>F</string>
+   </property>
+  </action>
+  <action name="actionManueller_Zuschnitt">
+   <property name="text">
+    <string>Manueller Zuschnitt</string>
+   </property>
+   <property name="shortcut">
+    <string>M</string>
    </property>
   </action>
  </widget>
