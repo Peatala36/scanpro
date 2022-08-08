@@ -292,13 +292,13 @@
    <property name="text">
     <string>Automatische Bearbeitung</string>
    </property>
+   <property name="shortcut">
+    <string>F</string>
+   </property>
   </action>
   <action name="actionPDF_Export">
    <property name="text">
     <string>PDF Export</string>
-   </property>
-   <property name="shortcut">
-    <string>F</string>
    </property>
   </action>
   <action name="actionManueller_Zuschnitt">

@@ -167,10 +167,12 @@ class img(QListWidgetItem):
         self.img = ""
         self.image_qt = ""
         try:
-            self.orgImg = cv.imread(orgPath)
+            #self.orgImg = cv.imread(orgPath)
+            self.setImg(cv.imread(orgPath))
+            pass
         except:
             print(str(orgPath) + " konnte nicht eingelesen werden.")
-        self.setImg(self.orgImg.copy())
+        
 
     def setImg(self, img):
         self.img = img

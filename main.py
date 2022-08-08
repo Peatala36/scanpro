@@ -3,7 +3,7 @@ import os
 import os.path
 import numpy as np
 from PyQt5 import QtWidgets, uic
-from PyQt5.QtWidgets import QGraphicsScene, QFileDialog, QGraphicsPixmapItem, QGraphicsView, QRubberBand
+from PyQt5.QtWidgets import QGraphicsScene, QFileDialog, QGraphicsPixmapItem, QGraphicsView, QRubberBand, QMessageBox
 from PyQt5.QtGui import QPixmap, QImage
 from PyQt5.QtCore import Qt, QRect, QPoint
 import scanpro
@@ -60,20 +60,20 @@ class MainWindow(QtWidgets.QMainWindow):
         
 
     def openFileDialog(self):
-        files, _ = QFileDialog.getOpenFileNames(self, "Bilder öffnen", "","Image Files (*.png *.jpg)")
-        if files:
-            head = ""
-            for f in files:
-                head, tail = os.path.split(f)
+##        files, _ = QFileDialog.getOpenFileNames(self, "Bilder öffnen", "","Image Files (*.png *.jpg)")
+        dialog = QFileDialog()
+        folder = dialog.getExistingDirectory(self, 'Wählen Sie einen Ordner') 
+        for file in sorted(os.listdir(folder)):
+            file = os.path.join(folder, file)
+            if os.path.isfile(file):
+                head, tail = os.path.split(file)
                 tail, _ = os.path.splitext(tail)
-                print(tail)
-                i = scanpro.img(f, tail)
-                self.ui.listWidget.addItem(i)
+                self.ui.listWidget.addItem(scanpro.img(file, tail))
                 print(tail + " wurde geladen")
-            self.tmpDir = os.path.join(head, "temp")
-            if not os.path.exists(self.tmpDir):
-                os.mkdir(self.tmpDir)
-                print("Temporärer Speicherort " + self.tmpDir + " wurde angelegt")
+        self.tmpDir = os.path.join(head, "temp")
+        if not os.path.exists(self.tmpDir):
+            os.mkdir(self.tmpDir)
+            print("Temporärer Speicherort " + self.tmpDir + " wurde angelegt")
 
     def saveFileDialog(self):
         fileName, _ = QFileDialog.getSaveFileName(self)
@@ -94,7 +94,11 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def delItem(self):
         if self.ui.listWidget.selectedItems():
-            self.ui.listWidget.takeItem(self.listWidget.currentRow())
+            if self.yesNo("Soll " + self.ui.listWidget.selectedItems()[0].text() + " gelöscht werden?"):
+                tmpFile = os.path.join(self.tmpDir, self.ui.listWidget.selectedItems()[0].text() + ".jpg")
+                if os.path.exists(tmpFile):
+                    os.remove(tmpFile)
+                self.ui.listWidget.takeItem(self.listWidget.currentRow())
 
     def rightRotate(self):
         if self.ui.listWidget.selectedItems():
@@ -204,13 +208,15 @@ class MainWindow(QtWidgets.QMainWindow):
             i2 = scanpro.img(i1.orgPath, i1.name)
             i2.img = i1.img.copy()
             
+            self.setBackup(i1)
             w = i1.img.shape[1]
             h = i1.img.shape[0]
-            r1 = QRect(0, 0, h, w//2)
-            r2 = QRect(0, w//2, h, w)
-
+            r1 = QRect(0, 0, w//2, h)
+            r2 = QRect(w//2, 0, w//2, h)
+            
             i1.manuel_cut(r1)
             i2.manuel_cut(r2)
+            i2.setName(i2.name + "_2")
 
             cur = self.listWidget.currentRow()
             self.ui.listWidget.insertItem(cur+1, i2)
@@ -256,8 +262,8 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.ui.actionUndo.setDisabled(True)
 
     def yesNo(self, message):
-        qm = QtGui.QMessageBox
-        return qm.question(self,'', message, qm.Yes | qm.No)
+        qm = QMessageBox()
+        return qm.warning(self,'', message, qm.Yes | qm.No)
 
     def PDFExport(self):
         fileName, _ = QFileDialog.getSaveFileName(self)
