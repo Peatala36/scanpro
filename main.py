@@ -3,7 +3,7 @@ import os
 import os.path
 import numpy as np
 from PyQt5 import QtWidgets, uic
-from PyQt5.QtWidgets import QGraphicsScene, QFileDialog, QGraphicsPixmapItem, QGraphicsView, QRubberBand, QMessageBox
+from PyQt5.QtWidgets import QGraphicsScene, QFileDialog, QGraphicsPixmapItem, QGraphicsView, QRubberBand, QMessageBox, QApplication
 from PyQt5.QtGui import QPixmap, QImage
 from PyQt5.QtCore import Qt, QRect, QPoint
 import scanpro
@@ -62,18 +62,24 @@ class MainWindow(QtWidgets.QMainWindow):
     def openFileDialog(self):
 ##        files, _ = QFileDialog.getOpenFileNames(self, "Bilder öffnen", "","Image Files (*.png *.jpg)")
         dialog = QFileDialog()
-        folder = dialog.getExistingDirectory(self, 'Wählen Sie einen Ordner') 
-        for file in sorted(os.listdir(folder)):
-            file = os.path.join(folder, file)
-            if os.path.isfile(file):
-                head, tail = os.path.split(file)
-                tail, _ = os.path.splitext(tail)
-                self.ui.listWidget.addItem(scanpro.img(file, tail))
-                print(tail + " wurde geladen")
-        self.tmpDir = os.path.join(head, "temp")
-        if not os.path.exists(self.tmpDir):
-            os.mkdir(self.tmpDir)
-            print("Temporärer Speicherort " + self.tmpDir + " wurde angelegt")
+        folder = dialog.getExistingDirectory(self, 'Wählen Sie einen Ordner')
+        if folder != "":
+            i = 0
+            QApplication.setOverrideCursor(Qt.WaitCursor)
+            for file in sorted(os.listdir(folder)):
+                file = os.path.join(folder, file)
+                if os.path.isfile(file):
+                    head, tail = os.path.split(file)
+                    tail, _ = os.path.splitext(tail)
+                    self.ui.listWidget.addItem(scanpro.img(file, tail))
+                    #print(tail + " wurde geladen")
+                    i += 1
+            QApplication.restoreOverrideCursor()
+            self.ui.statusbar.showMessage(str(len(os.listdir(folder))) + " Dateien wurden gefunden")
+            self.tmpDir = os.path.join(head, "temp")
+            if not os.path.exists(self.tmpDir):
+                os.mkdir(self.tmpDir)
+                print("Temporärer Speicherort " + self.tmpDir + " wurde angelegt")
 
     def saveFileDialog(self):
         fileName, _ = QFileDialog.getSaveFileName(self)
@@ -224,6 +230,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def itemClicked_event(self, item):
         pic = QGraphicsPixmapItem()
+        self.ui.listWidget.selectedItems()[0].load()
         p = item.image_qt.scaled(self.ui.graphicsView.width(), self.ui.graphicsView.height(), Qt.KeepAspectRatio)
         pic.setPixmap(QPixmap.fromImage(p))
         self.scene.clear()

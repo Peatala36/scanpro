@@ -121,7 +121,7 @@
   <action name="action_oeffnen">
    <property name="icon">
     <iconset theme="document-open">
-     <normaloff>.</normaloff>.</iconset>
+     <normaloff>../../.designer/backup</normaloff>../../.designer/backup</iconset>
    </property>
    <property name="text">
     <string>Öffnen</string>
@@ -133,7 +133,7 @@
   <action name="actionSpeichern">
    <property name="icon">
     <iconset theme="document-save">
-     <normaloff>.</normaloff>.</iconset>
+     <normaloff>../../.designer/backup</normaloff>../../.designer/backup</iconset>
    </property>
    <property name="text">
     <string>Speichern</string>
@@ -145,7 +145,7 @@
   <action name="actionLinks_rotieren">
    <property name="icon">
     <iconset theme="object-rotate-left">
-     <normaloff>.</normaloff>.</iconset>
+     <normaloff>../../.designer/backup</normaloff>../../.designer/backup</iconset>
    </property>
    <property name="text">
     <string>Links rotieren</string>
@@ -157,7 +157,7 @@
   <action name="actionRechts_rotieren">
    <property name="icon">
     <iconset theme="object-rotate-right">
-     <normaloff>.</normaloff>.</iconset>
+     <normaloff>../../.designer/backup</normaloff>../../.designer/backup</iconset>
    </property>
    <property name="text">
     <string>Rechts rotieren</string>
@@ -169,7 +169,7 @@
   <action name="actionrefresh">
    <property name="icon">
     <iconset theme="view-fullscreen">
-     <normaloff>.</normaloff>.</iconset>
+     <normaloff>../../.designer/backup</normaloff>../../.designer/backup</iconset>
    </property>
    <property name="text">
     <string>refresh</string>
@@ -202,7 +202,7 @@
   <action name="actionUndo">
    <property name="icon">
     <iconset theme="edit-undo">
-     <normaloff>.</normaloff>.</iconset>
+     <normaloff>../../.designer/backup</normaloff>../../.designer/backup</iconset>
    </property>
    <property name="text">
     <string>Rückgängig</string>
@@ -238,7 +238,7 @@
   <action name="actionRunter">
    <property name="icon">
     <iconset theme="go-down">
-     <normaloff>.</normaloff>.</iconset>
+     <normaloff>../../.designer/backup</normaloff>../../.designer/backup</iconset>
    </property>
    <property name="text">
     <string>Runter</string>
@@ -250,7 +250,7 @@
   <action name="actionHoch">
    <property name="icon">
     <iconset theme="go-up">
-     <normaloff>.</normaloff>.</iconset>
+     <normaloff>../../.designer/backup</normaloff>../../.designer/backup</iconset>
    </property>
    <property name="text">
     <string>Hoch</string>
@@ -275,7 +275,7 @@
   <action name="actionDeletItem">
    <property name="icon">
     <iconset theme="edit-delete">
-     <normaloff>.</normaloff>.</iconset>
+     <normaloff>../../.designer/backup</normaloff>../../.designer/backup</iconset>
    </property>
    <property name="text">
     <string>Lösche Element</string>
@@ -287,7 +287,7 @@
   <action name="actionAuto">
    <property name="icon">
     <iconset theme="application-x-executable">
-     <normaloff>.</normaloff>.</iconset>
+     <normaloff>../../.designer/backup</normaloff>../../.designer/backup</iconset>
    </property>
    <property name="text">
     <string>Automatische Bearbeitung</string>
