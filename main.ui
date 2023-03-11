@@ -101,6 +101,14 @@
      <addaction name="actionGrau"/>
      <addaction name="actionBlackWhite"/>
     </widget>
+    <widget class="QMenu" name="menuSeite_teilen">
+     <property name="title">
+      <string>Seite teilen</string>
+     </property>
+     <addaction name="actionLineLeft"/>
+     <addaction name="actionLineRight"/>
+     <addaction name="actionSeiteTeilen"/>
+    </widget>
     <addaction name="actionUndo"/>
     <addaction name="actionDeletItem"/>
     <addaction name="actionrefresh"/>
@@ -111,8 +119,8 @@
     <addaction name="separator"/>
     <addaction name="menuZuschnitt"/>
     <addaction name="menuFarben"/>
+    <addaction name="menuSeite_teilen"/>
     <addaction name="actionRetouch"/>
-    <addaction name="actionSeite_teilen"/>
     <addaction name="actionFuellen"/>
    </widget>
    <addaction name="menuDatei"/>
@@ -264,14 +272,6 @@
     <string>Füllen</string>
    </property>
   </action>
-  <action name="actionSeite_teilen">
-   <property name="text">
-    <string>Seite teilen</string>
-   </property>
-   <property name="shortcut">
-    <string>T</string>
-   </property>
-  </action>
   <action name="actionDeletItem">
    <property name="icon">
     <iconset theme="edit-delete">
@@ -307,6 +307,36 @@
    </property>
    <property name="shortcut">
     <string>M</string>
+   </property>
+  </action>
+  <action name="actionLineLeft">
+   <property name="icon">
+    <iconset theme="go-left"/>
+   </property>
+   <property name="text">
+    <string>Tennlinie links</string>
+   </property>
+   <property name="shortcut">
+    <string>Y</string>
+   </property>
+  </action>
+  <action name="actionLineRight">
+   <property name="icon">
+    <iconset theme="go-right"/>
+   </property>
+   <property name="text">
+    <string>Trennlinie rechts</string>
+   </property>
+   <property name="shortcut">
+    <string>X</string>
+   </property>
+  </action>
+  <action name="actionSeiteTeilen">
+   <property name="text">
+    <string>Seite teilen</string>
+   </property>
+   <property name="shortcut">
+    <string>T</string>
    </property>
   </action>
  </widget>

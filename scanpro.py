@@ -166,6 +166,7 @@ class img(QListWidgetItem):
         self.setName(name)
         self.img = ""
         self.image_qt = ""
+        self.line_x = 0
 
     def load(self):
         if type(self.img) == str:
@@ -182,10 +183,23 @@ class img(QListWidgetItem):
         h, w, ch = rgb_image.shape
         bytes_per_line = ch * w
         self.image_qt = QImage(rgb_image.data, w, h, bytes_per_line, QImage.Format_RGB888)
+        
+        self.line_x = w // 2
 
     def setName(self, name):
         self.name = name
         self.setText(name)
+
+    def getX(self):
+        return self.img.shape[1]
+
+    def getY(self):
+        return self.img.shape[0]
+
+    def getLineXPercentage(self):
+        a = self.line_x/self.getX()
+        print(a)
+        return a
 
     def auto_cut(self, contrast="thresh", max_cnt="area"):
         orig = self.img.copy()
@@ -224,11 +238,12 @@ class img(QListWidgetItem):
                 cnt = max(contours, key=cv.contourArea)
             except:
                 return
-        
+
         rect = cv.minAreaRect(cnt)
+        #return: (center(x, y), (width, height), angle of rotation) = cv2.minAreaRect(points)
         box = cv.boxPoints(rect)
         box = np.int0(box)
-
+        
         self.setImg(self._four_point_transform(orig, box / scale))
 
 
@@ -256,6 +271,7 @@ class img(QListWidgetItem):
         # obtain a consistent order of the points and unpack them
         # individually
         rect = self._order_points(pts)
+        print(rect)
         (tl, tr, br, bl) = rect
         # compute the width of the new image, which will be the
         # maximum distance between bottom-right and bottom-left
