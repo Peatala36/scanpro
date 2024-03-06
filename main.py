@@ -99,6 +99,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # Setting up settings
         self.maxBackups = 10
 
+    #####################
+    ## General Methods ##
+    #####################
     def openFileDialog(self):
         # Method to open file dialog and populate the list widget with images from the selected folder
 ##        files, _ = QFileDialog.getOpenFileNames(self, "Bilder öffnen", "","Image Files (*.png *.jpg)")
@@ -116,6 +119,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             # Show wait cursor
             QApplication.setOverrideCursor(Qt.WaitCursor)
 
+            # Open Progress bar
             dlg = ProgressDialog(self)
             dlg.progressBar.setMaximum(len(os.listdir(self.folder)))
             dlg.show()
@@ -141,6 +145,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             # Show standard cursor
             QApplication.restoreOverrideCursor()
 
+            # Select first item
+            self.selectedItem = self.listWidget.item(0)
+            self.refresh()
+
             # Set message in the Statusbar
             self.ui.statusbar.showMessage(str(i) + " Dateien wurden gefunden")
 
@@ -151,15 +159,59 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             print(fileName)
             cv.imwrite(fileName, self.selectedItem.img)
 
+    def refresh(self):
+        # Method to refresh the UI
+        if self.selectedItem:
+            # (Re)load image from the file system
+            self.selectedItem.load()
+
+            # Clean graphicView
+            self.scene.clear()
+        
+            # Convert image to QGraphicsPixmapItem
+            self.selectedItem.covert2qt()
+            p = self.selectedItem.image_qt.scaled(self.ui.graphicsView.width(), self.ui.graphicsView.height(), Qt.KeepAspectRatio)
+            pic = QGraphicsPixmapItem()
+            pic.setPixmap(QPixmap.fromImage(p))
+            self.scene.addItem(pic)
+
+            # Calculate size of the image in byte
+            if len(self.selectedItem.img.shape) == 3:
+                row, column, depth = self.selectedItem.img.shape
+            elif len(self.selectedItem.img.shape) == 2:
+                row, column = self.selectedItem.img.shape
+                depth = 1
+
+            is_success, im_buf_arr = cv.imencode(".jpg", self.selectedItem.img)
+            byte_im = round(sys.getsizeof(im_buf_arr) / 1024, 2)
+
+            # Show calculated size of the image in byte in the status bar
+            self.ui.statusbar.showMessage(str(column) + "x" + str(row) + " / " + str(byte_im) + " KiB")
+            
+            #
+            self.rubberBandArea = QRect()
+
+            # Show line
+            x1 = self.scene.width() * self.selectedItem.getLineXPercentage()
+            y2 = self.scene.height()
+            line = self.scene.addLine(x1,0,x1,y2,self.pen)
+
+    def itemClicked_event(self, item):
+        # Method to handle item clicked event
+        self.selectedItem = item
+        self.refresh()
+
     def listUp(self):
         # Method to move the current row up in the list widget
         self.listWidget.setCurrentRow(self.listWidget.currentRow() - 1)
+        self.selectedItem = self.listWidget.currentRow()
         self.refresh()
     
     def listDown(self):
         # Method to move the current row down in the list widget
         if self.ui.listWidget.selectedItems():
             self.listWidget.setCurrentRow(self.listWidget.currentRow() + 1)
+            self.selectedItem = self.listWidget.currentRow()
             self.refresh()
         else:
             self.ui.listWidget.item(0).setSelected(True)
@@ -173,197 +225,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     os.remove(file)
                     self.ui.statusbar.showMessage(file + " wurde gelöscht")
                 self.ui.listWidget.takeItem(self.listWidget.currentRow())
-
-    def rightRotate(self):
-        # Method to rotate the selected image 90 degrees clockwise
-        if self.ui.listWidget.selectedItems():
-            self.setBackup(self.selectedItem)
-            self.selectedItem.rotate_90_clockwise()
-            self.refresh()
-
-    def leftRotate(self):
-        # Method to rotate the selected image 90 degrees counterclockwise
-        if self.ui.listWidget.selectedItems():
-            self.setBackup(self.selectedItem)
-            self.selectedItem.rotate_90_counterclockwise()
-            self.refresh()
-
-    def zuschnitt_1(self):
-        # Method for image cropping option 1
-        if self.ui.listWidget.selectedItems():
-            self.setBackup(self.selectedItem)
-            self.selectedItem.auto_cut(contrast="thresh", max_cnt="area")
-            self.refresh()
-
-    def zuschnitt_2(self):
-        # Method for image cropping option 2
-        if self.ui.listWidget.selectedItems():
-            self.setBackup(self.selectedItem)
-            self.selectedItem.auto_cut(contrast="canny", max_cnt="area")
-            self.refresh()
-
-    def zuschnitt_3(self):
-        # Method for image cropping option 3
-        if self.ui.listWidget.selectedItems():
-            self.setBackup(self.selectedItem)
-            self.selectedItem.auto_cut(contrast="canny", max_cnt="length")
-            self.refresh()
-
-    def grau(self):
-        # Method to convert the selected image to grayscale
-        if self.ui.listWidget.selectedItems():
-            self.setBackup(self.selectedItem)
-            self.selectedItem.setGray()
-            self.refresh()
-
-    def schwarzWeiss(self):
-        # Method to convert the selected image to black and white
-        if self.ui.listWidget.selectedItems():
-            i = self.selectedItem
-            self.setBackup(i)
-            i.setBlackWhite()
-            h = i.img.shape[0]
-            w = i.img.shape[1]
-            #i.floodfill((0,0))
-            #i.floodfill((0,h-1))
-            #i.floodfill((w-1,0))
-            #i.floodfill((w-1,h-1))
-            self.refresh()
-    
-    def rubberBand(self, viewportRect, fromScenePoint, toScenePoint):
-        # Method to handle rubber band selection in the graphics view
-        if viewportRect != QRect():
-            self.rubberBandArea = viewportRect
-
-    def retouch(self):
-        # Method for image retouching
-        if self.rubberBandArea:
-            self.setBackup(self.selectedItem)
-            self.selectedItem.retouch(self.rubberBandArea, self.ui.graphicsView)
-            self.refresh()
-
-    def manuelCut(self):
-        # Method for manual image cropping
-        if self.rubberBandArea:
-            self.setBackup(self.selectedItem)
-            scal_x = self.ui.graphicsView.width() / self.selectedItem.img.shape[1]
-            scal_y = self.ui.graphicsView.height() / self.selectedItem.img.shape[0]
-            scal = min(scal_x, scal_y)
-
-            start = self.ui.graphicsView.mapToScene(self.rubberBandArea.topLeft()) / scal
-            ende = self.ui.graphicsView.mapToScene(self.rubberBandArea.bottomRight()) / scal
-
-            r = QRect(int(start.x()), int(start.y()), int(ende.x()-start.x()), int(ende.y()-start.y()))
-            self.selectedItem.manuel_cut(r)
-            self.refresh()
-
-    def bucketFill(self):
-        # Method for bucket filling
-        if self.ui.listWidget.selectedItems():
-            self.setBackup(self.selectedItem)
-            self.selectedItem.floodfill()
-            self.refresh()
-
-    def shiftLineLeft(self):
-        # Method to shift the cutting line to the left
-        self.selectedItem.line_x -= 10
-        self.refresh()
-
-    def shiftLineRight(self):
-        # Method to shift the cutting line to the right
-        self.selectedItem.line_x += 10
-        self.refresh()
-
-    def seiteTeilen(self):
-        # Method to split the page
-##        if self.ui.listWidget.selectedItems():            
-##            i1 = self.selectedItem
-##            i2 = scanpro.img(i1.orgPath, i1.name)
-##            i2.img = i1.img.copy()
-##            
-##            self.setBackup(i1)
-##            w = i1.img.shape[1]
-##            h = i1.img.shape[0]
-##            r1 = QRect(0, 0, i1.line_x, h)
-##            r2 = QRect(i1.line_x, 0, i1.line_x, h)
-##            
-##            i1.manuel_cut(r1)
-##            i2.manuel_cut(r2)
-##            i2.setName(i2.name + "_2")
-##
-##            cur = self.listWidget.currentRow()
-##            self.ui.listWidget.insertItem(cur+1, i2)
-        self.refresh()
-
-
-    def auto(self):
-        # Method for automatic image processing
-        if self.ui.listWidget.selectedItems():
-            self.setBackup(self.selectedItem)
-            self.selectedItem.auto_cut(contrast="thresh", max_cnt="area")
-            self.selectedItem.setGray()
-            i1 = self.selectedItem
-            i2 = scanpro.img(i1.orgPath, i1.name)
-            i2.img = i1.img.copy()
-            
-            self.setBackup(i1)
-            w = i1.img.shape[1]
-            h = i1.img.shape[0]
-            r1 = QRect(0, 0, w//2, h)
-            r2 = QRect(w//2, 0, w//2, h)
-            
-            i1.manuel_cut(r1)
-            i2.manuel_cut(r2)
-            i2.setName(i2.name + "_2")
-
-            cur = self.listWidget.currentRow()
-            self.ui.listWidget.insertItem(cur+1, i2)
-            self.refresh()
-
-    def itemClicked_event(self, item):
-        # Method to handle item clicked event
-        self.selectedItem = item
-        
-        # (Re)load image from the file system
-        item.load()
-
-        # Clean graphicView
-        self.scene.clear()
-        
-        # Convert image to QGraphicsPixmapItem
-        item.covert2qt()
-        p = item.image_qt.scaled(self.ui.graphicsView.width(), self.ui.graphicsView.height(), Qt.KeepAspectRatio)
-        pic = QGraphicsPixmapItem()
-        pic.setPixmap(QPixmap.fromImage(p))
-        self.scene.addItem(pic)
-
-        # Calculate size of the image in byte
-        if len(item.img.shape) == 3:
-            row, column, depth = item.img.shape
-        elif len(item.img.shape) == 2:
-            row, column = item.img.shape
-            depth = 1
-
-        is_success, im_buf_arr = cv.imencode(".jpg", item.img)
-        byte_im = round(sys.getsizeof(im_buf_arr) / 1024, 2)
-
-        # Show calculated size of the image in byte in the status bar
-        self.ui.statusbar.showMessage(str(column) + "x" + str(row) + " / " + str(byte_im) + " KiB")
-
-    def refresh(self):
-        # Method to refresh the UI
-        if self.ui.listWidget.selectedItems():
-            # Manuel call of the itemClicked_event:
-            self.itemClicked_event(self.selectedItem)
-            #tmpFile = os.path.join(self.tmpDir, self.ui.listWidget.selectedItems()[0].text() + ".jpg")
-            #cv.imwrite(tmpFile, self.ui.listWidget.selectedItems()[0].img)
-            
-            cv.imwrite(self.selectedItem.orgPath, self.selectedItem.img)
-            self.rubberBandArea = QRect()
-            x1 = self.scene.width() * self.selectedItem.getLineXPercentage()
-            y2 = self.scene.height()
-            line = self.scene.addLine(x1,0,x1,y2,self.pen)
-            
 
     def setBackup(self, img):
         # Method to set a backup for undo operation
@@ -383,14 +244,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.ui.actionUndo.setDisabled(True)
 
     def restore(self):
-        # method to restore the original image from the tmp folder
-        if self.ui.listWidget.selectedItems():
+        # Method to restore the original image from the tmp folder
+        if self.selectedItem:
             tmpFile = os.path.join(self.tmpDir, self.selectedItem.name + ".jpg")
             if os.path.exists(tmpFile):
                 shutil.copy(tmpFile, self.folder)
-                #self.refresh()
+                self.refresh()
             
-
     def yesNo(self, message):
         # Method to display a yes/no message box
         qm = QMessageBox()
@@ -398,11 +258,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def PDFExport(self):
         # Method to export images to PDF format
+        # Open PDF user dialog
         dlg = Ui_Pdf(self)
         dlg.show()
         if dlg.exec_():
+            # Read selected values
             dpi = int(dlg.dpi.currentText())
-            
+
             if dlg.format.currentText() == "A3":
                 x_s, y_s = 11.7, 16.5
             elif dlg.format.currentText() == "A4":
@@ -450,10 +312,161 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 del imgList_converted[0]
                 im1.save(fileName, save_all=True, append_images=imgList_converted, resolution=dpi)
                 print("PDF fertig konvertiert")
+
+    ################################
+    ## Methods for editing images ##
+    ################################
+    def rightRotate(self):
+        # Method to rotate the selected image 90 degrees clockwise
+        if self.selectedItem:
+            self.setBackup(self.selectedItem)
+            self.selectedItem.rotate_90_clockwise()
+            cv.imwrite(self.selectedItem.orgPath, self.selectedItem.img)
+            self.refresh()
+
+    def leftRotate(self):
+        # Method to rotate the selected image 90 degrees counterclockwise
+        if self.selectedItem:
+            self.setBackup(self.selectedItem)
+            self.selectedItem.rotate_90_counterclockwise()
+            cv.imwrite(self.selectedItem.orgPath, self.selectedItem.img)
+            self.refresh()
+
+    def zuschnitt_1(self):
+        # Method for image cropping option 1
+        if self.selectedItem:
+            self.setBackup(self.selectedItem)
+            self.selectedItem.auto_cut(contrast="thresh", max_cnt="area")
+            cv.imwrite(self.selectedItem.orgPath, self.selectedItem.img)
+            self.refresh()
+
+    def zuschnitt_2(self):
+        # Method for image cropping option 2
+        if self.selectedItem:
+            self.setBackup(self.selectedItem)
+            self.selectedItem.auto_cut(contrast="canny", max_cnt="area")
+            cv.imwrite(self.selectedItem.orgPath, self.selectedItem.img)
+            self.refresh()
+
+    def zuschnitt_3(self):
+        # Method for image cropping option 3
+        if self.selectedItem:
+            self.setBackup(self.selectedItem)
+            self.selectedItem.auto_cut(contrast="canny", max_cnt="length")
+            cv.imwrite(self.selectedItem.orgPath, self.selectedItem.img)
+            self.refresh()
+
+    def grau(self):
+        # Method to convert the selected image to grayscale
+        if self.selectedItem:
+            self.setBackup(self.selectedItem)
+            self.selectedItem.setGray()
+            cv.imwrite(self.selectedItem.orgPath, self.selectedItem.img)
+            self.refresh()
+
+    def schwarzWeiss(self):
+        # Method to convert the selected image to black and white
+        if self.selectedItem:
+            i = self.selectedItem
+            self.setBackup(i)
+            i.setBlackWhite()
+            h = i.img.shape[0]
+            w = i.img.shape[1]
+            #i.floodfill((0,0))
+            #i.floodfill((0,h-1))
+            #i.floodfill((w-1,0))
+            #i.floodfill((w-1,h-1))
+            cv.imwrite(self.selectedItem.orgPath, self.selectedItem.img)
+            self.refresh()
+    
+    def rubberBand(self, viewportRect, fromScenePoint, toScenePoint):
+        # Method to handle rubber band selection in the graphics view
+        if viewportRect != QRect():
+            self.rubberBandArea = viewportRect
+
+    def retouch(self):
+        # Method for image retouching
+        if self.rubberBandArea:
+            self.setBackup(self.selectedItem)
+            self.selectedItem.retouch(self.rubberBandArea, self.ui.graphicsView)
+            cv.imwrite(self.selectedItem.orgPath, self.selectedItem.img)
+            self.refresh()
+
+    def manuelCut(self):
+        # Method for manual image cropping
+        if self.rubberBandArea:
+            self.setBackup(self.selectedItem)
+            scal_x = self.ui.graphicsView.width() / self.selectedItem.img.shape[1]
+            scal_y = self.ui.graphicsView.height() / self.selectedItem.img.shape[0]
+            scal = min(scal_x, scal_y)
+
+            start = self.ui.graphicsView.mapToScene(self.rubberBandArea.topLeft()) / scal
+            ende = self.ui.graphicsView.mapToScene(self.rubberBandArea.bottomRight()) / scal
+
+            r = QRect(int(start.x()), int(start.y()), int(ende.x()-start.x()), int(ende.y()-start.y()))
+            self.selectedItem.manuel_cut(r)
+            cv.imwrite(self.selectedItem.orgPath, self.selectedItem.img)
+            self.refresh()
+
+    def bucketFill(self):
+        # Method for bucket filling
+        if self.selectedItem:
+            self.setBackup(self.selectedItem)
+            self.selectedItem.floodfill()
+            cv.imwrite(self.selectedItem.orgPath, self.selectedItem.img)
+            self.refresh()
+
+    def shiftLineLeft(self):
+        # Method to shift the cutting line to the left
+        self.selectedItem.line_x -= 10
+        self.refresh()
+
+    def shiftLineRight(self):
+        # Method to shift the cutting line to the right
+        self.selectedItem.line_x += 10
+        self.refresh()
+
+    def seiteTeilen(self):
+        # Method to split the page
+##        if self.ui.listWidget.selectedItems():            
+##            i1 = self.selectedItem
+##            i2 = scanpro.img(i1.orgPath, i1.name)
+##            i2.img = i1.img.copy()
+##            
+##            self.setBackup(i1)
+##            w = i1.img.shape[1]
+##            h = i1.img.shape[0]
+##            r1 = QRect(0, 0, i1.line_x, h)
+##            r2 = QRect(i1.line_x, 0, i1.line_x, h)
+##            
+##            i1.manuel_cut(r1)
+##            i2.manuel_cut(r2)
+##            i2.setName(i2.name + "_2")
+##
+##            cur = self.listWidget.currentRow()
+##            self.ui.listWidget.insertItem(cur+1, i2)
+        self.refresh()
+
+
+    def auto(self):
+        # Method for automatic image processing
+
+        # Open progress bar
+        dlg = ProgressDialog(self)
+        dlg.progressBar.setMaximum(len(os.listdir(self.folder)))
+        dlg.show()
+        
+        for i in range(self.listWidget.count()):
+            self.selectedItem = self.listWidget.item(i)
+            self.selectedItem.load()
+            self.zuschnitt_1()
+            self.grau()
+            dlg.progressBar.setValue(i)
+
+        dlg.close()
+        self.ui.statusbar.showMessage("Es wurden " + str(self.listWidget.count()) + " Bilder bearbeitet")
             
-
-
-
+            
 
 # Class for storing backup versions for undo operation
 class backup():
