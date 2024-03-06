@@ -177,9 +177,10 @@ class img(QListWidgetItem):
 
     def setImg(self, img):
         self.img = img
-        
+
+    def covert2qt(self):
         """Convert from an opencv image to QPixmap"""
-        rgb_image = cv.cvtColor(img, cv.COLOR_BGR2RGB)
+        rgb_image = cv.cvtColor(self.img, cv.COLOR_BGR2RGB)
         h, w, ch = rgb_image.shape
         bytes_per_line = ch * w
         self.image_qt = QImage(rgb_image.data, w, h, bytes_per_line, QImage.Format_RGB888)

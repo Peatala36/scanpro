@@ -110,6 +110,7 @@
      <addaction name="actionSeiteTeilen"/>
     </widget>
     <addaction name="actionUndo"/>
+    <addaction name="actionRestore"/>
     <addaction name="actionDeletItem"/>
     <addaction name="actionrefresh"/>
     <addaction name="separator"/>
@@ -311,7 +312,8 @@
   </action>
   <action name="actionLineLeft">
    <property name="icon">
-    <iconset theme="go-left"/>
+    <iconset theme="go-left">
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Tennlinie links</string>
@@ -322,7 +324,8 @@
   </action>
   <action name="actionLineRight">
    <property name="icon">
-    <iconset theme="go-right"/>
+    <iconset theme="go-right">
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Trennlinie rechts</string>
@@ -337,6 +340,11 @@
    </property>
    <property name="shortcut">
     <string>T</string>
+   </property>
+  </action>
+  <action name="actionRestore">
+   <property name="text">
+    <string>Original wiederherstellen</string>
    </property>
   </action>
  </widget>
