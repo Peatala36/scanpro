@@ -283,35 +283,42 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 imgList_converted = list()
                 imgDict = dict()
                 imNpArray = np.zeros(self.listWidget.count())
-                print(len(imNpArray))
+                #print(len(imNpArray))
                 imgList = [self.listWidget.item(i) for i in range(self.listWidget.count())]
-                print(imgList)
-                print(str(len(imgList)) + " Elemente wurden gefunden.")
+                #print(imgList)
+                #print(str(len(imgList)) + " Elemente wurden gefunden.")
                 x = 0
                 for i in imgList:
                     i.load()
-                    print(i.name)
-                    color_coverted = cv.cvtColor(i.img, cv.COLOR_BGR2RGB)
-                    im_pil = Image.fromarray(color_coverted)
-                    scale_x = im_pil.size[0] / size[0]
-                    scale_y = im_pil.size[1] / size[1]
-                    if scale_x<scale_y:
-                        scale = scale_y
-                    else:
-                        scale = scale_x
-                    size_new = (int(im_pil.size[0]/scale), int(im_pil.size[1]/scale))
-                    im_pil=im_pil.resize(size_new)
-                    a4im = Image.new('RGB', size, (255,255,255))
-                    a4im.paste(im_pil, im_pil.getbbox())
-                    #imgList_converted.append(a4im)
+                    #print(i.name)
+                    
+                    imgList_converted.append(self.fitImage(i, size))
                     #imgDict[i.name] = a4im
-                    imNpArray[x] = a4im
+                    #imNpArray[x] = self.fitImage(i, size)
                     del i
                     x += 1
-                im1 = imgList_converted[0]
-                del imgList_converted[0]
-                im1.save(fileName, save_all=True, append_images=imgList_converted, resolution=dpi)
+                #im1 = imgList_converted[0]
+                #del imgList_converted[0]
+                #im1.save(fileName, save_all=True, append_images=imgList_converted, resolution=dpi)
+                pdf_data = img2pdf.convert(imgList_converted)
+                with open("output.pdf", "wb") as file:
+                    file.write(pdf_data)
                 print("PDF fertig konvertiert")
+
+    def fitImage(self, img, size):
+        color_coverted = cv.cvtColor(img, cv.COLOR_BGR2RGB)
+        im_pil = Image.fromarray(color_coverted)
+        scale_x = im_pil.size[0] / size[0]
+        scale_y = im_pil.size[1] / size[1]
+        if scale_x<scale_y:
+            scale = scale_y
+        else:
+            scale = scale_x
+        size_new = (int(im_pil.size[0]/scale), int(im_pil.size[1]/scale))
+        im_pil=im_pil.resize(size_new)
+        a4im = Image.new('RGB', size, (255,255,255))
+        a4im.paste(im_pil, im_pil.getbbox())
+        return a4im
 
     ################################
     ## Methods for editing images ##
@@ -461,11 +468,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.selectedItem.load()
             self.zuschnitt_1()
             self.grau()
+            h = self.selectedItem.img.shape[0]
+            w = self.selectedItem.img.shape[1]
+            if h > w:
+                self.rightRotate()
             dlg.progressBar.setValue(i)
 
         dlg.close()
         self.ui.statusbar.showMessage("Es wurden " + str(self.listWidget.count()) + " Bilder bearbeitet")
-            
             
 
 # Class for storing backup versions for undo operation
